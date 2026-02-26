@@ -381,9 +381,13 @@ export default function App() {
                                   onChange={e => updateItem(group.id, item.id, { includeInLanded: e.target.checked })}
                                   className="h-4 w-4 cursor-pointer accent-[#60a5fa]"
                                 />
-                                <button onClick={() => removeItem(group.id, item.id)}
-                                  className="text-[#6b7280] hover:text-red-400 transition-colors">
-                                  <Trash2 className="h-3.5 w-3.5" />
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); removeItem(group.id, item.id); }}
+                                  className="p-1 rounded text-[#6b7280] hover:text-red-400 hover:bg-white/10 transition-colors"
+                                  title="Delete cost line"
+                                >
+                                  <Trash2 className="h-4 w-4" />
                                 </button>
                               </div>
                             </div>

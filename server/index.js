@@ -41,18 +41,28 @@ app.get('/api/container', async (req, res) => {
 
 app.patch('/api/container', async (req, res) => {
   const sb = supabase();
-  const title = req.body?.title ?? defaults.title;
-  const mbl = req.body?.mbl ?? defaults.mbl;
-  const container_code = req.body?.container_code ?? defaults.container_code;
-  const ref_no = req.body?.ref_no ?? defaults.ref_no;
-  if (!sb) return res.json({ title, mbl, container_code, ref_no });
+  const body = req.body || {};
+  if (!sb) {
+    return res.json({
+      title: body.title ?? defaults.title,
+      mbl: body.mbl ?? defaults.mbl,
+      container_code: body.container_code ?? defaults.container_code,
+      ref_no: body.ref_no ?? defaults.ref_no,
+    });
+  }
   try {
-    const { error } = await sb.schema('container_cost').from('containers').upsert(
-      { id: CONTAINER_ID, title, mbl, container_code, ref_no, updated_at: new Date().toISOString() },
-      { onConflict: 'id' }
-    );
+    const { data: current } = await sb.schema('container_cost').from('containers').select('title, mbl, container_code, ref_no').eq('id', CONTAINER_ID).maybeSingle();
+    const merged = {
+      id: CONTAINER_ID,
+      title: body.title !== undefined ? body.title : (current?.title ?? defaults.title),
+      mbl: body.mbl !== undefined ? body.mbl : (current?.mbl ?? defaults.mbl),
+      container_code: body.container_code !== undefined ? body.container_code : (current?.container_code ?? defaults.container_code),
+      ref_no: body.ref_no !== undefined ? body.ref_no : (current?.ref_no ?? defaults.ref_no),
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await sb.schema('container_cost').from('containers').upsert(merged, { onConflict: 'id' });
     if (error) throw error;
-    return res.json({ title, mbl, container_code, ref_no });
+    return res.json({ title: merged.title, mbl: merged.mbl, container_code: merged.container_code, ref_no: merged.ref_no });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: 'Database error' });

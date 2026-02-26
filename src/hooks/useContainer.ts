@@ -52,14 +52,16 @@ export function useContainer() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         setContainer({
           title: data.title ?? container.title,
           mbl: data.mbl ?? container.mbl,
           container_code: data.container_code ?? container.container_code,
           ref_no: data.ref_no ?? container.ref_no,
         });
+      } else {
+        console.error('Container save failed:', res.status, data);
       }
     } finally {
       setSaving(false);
