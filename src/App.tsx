@@ -5,6 +5,7 @@ import {
   Pencil, Check, Plus, Trash2, AlertTriangle,
 } from 'lucide-react';
 import { useContainer } from './hooks/useContainer';
+import { useCalculator } from './hooks/useCalculator';
 import type { CostGroup, CostItem, GroupColor } from './types';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -82,6 +83,22 @@ const INITIAL_GROUPS: CostGroup[] = [
 // ─── component ───────────────────────────────────────────────────────────────
 export default function App() {
   const { container, loading, saving, updateContainer } = useContainer();
+  const calc = useCalculator(INITIAL_GROUPS);
+  const {
+    groups,
+    setGroups,
+    totalGoodsUSD,
+    setTotalGoodsUSD,
+    goodsRate,
+    setGoodsRate,
+    globalRate,
+    setGlobalRate,
+    rateDate,
+    setRateDate,
+    samplePrice,
+    setSamplePrice,
+    saving: calcSaving,
+  } = calc;
 
   // Container header inline edit
   const [editTitle, setEditTitle] = useState(false);
@@ -93,21 +110,9 @@ export default function App() {
   const [localContainerCode, setLocalContainerCode] = useState('');
   const [localRefNo, setLocalRefNo] = useState('');
 
-  // Cost groups
-  const [groups,    setGroups]    = useState<CostGroup[]>(INITIAL_GROUPS);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [editGroupLabel, setEditGroupLabel] = useState('');
-
-  // Goods value
-  const [totalGoodsUSD, setTotalGoodsUSD] = useState(53870.46);
-  const [goodsRate,     setGoodsRate]     = useState(1.1651);
-  const [globalRate,    setGlobalRate]    = useState(1.1651);
-  /** Date for USD conversion — future: fetch rate for this date from external API */
-  const [rateDate,      setRateDate]      = useState(() => new Date().toISOString().slice(0, 10));
-
-  // Sample price
-  const [samplePrice, setSamplePrice] = useState(100);
 
   // Copy feedback
   const [copied, setCopied] = useState(false);
@@ -195,6 +200,9 @@ export default function App() {
             <p className="text-[#9ca3af] text-sm">Loading…</p>
           ) : (
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[#d1d5db]">
+              {(saving || calcSaving) && (
+                <span className="text-[#9ca3af] text-xs italic">Saving…</span>
+              )}
               <span className="text-[#6b7280]">Container:</span>
               {editTitle ? (
                 <span className="flex items-center gap-2">

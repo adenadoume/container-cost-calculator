@@ -69,7 +69,62 @@ app.patch('/api/container', async (req, res) => {
   }
 });
 
+const CALC_ID = 'default';
+const calcDefaults = {
+  global_rate: 1.1651,
+  rate_date: new Date().toISOString().slice(0, 10),
+  total_goods_usd: 53870.46,
+  goods_rate: 1.1651,
+  sample_price: 100,
+  groups: [],
+};
+
+app.get('/api/calculator', async (req, res) => {
+  const sb = supabase();
+  if (!sb) return res.json(calcDefaults);
+  try {
+    const { data, error } = await sb.schema('container_cost').from('calculator_state').select('global_rate, rate_date, total_goods_usd, goods_rate, sample_price, groups').eq('id', CALC_ID).maybeSingle();
+    if (error) throw error;
+    if (!data) return res.json(calcDefaults);
+    return res.json({
+      global_rate: data.global_rate ?? calcDefaults.global_rate,
+      rate_date: data.rate_date ?? calcDefaults.rate_date,
+      total_goods_usd: data.total_goods_usd ?? calcDefaults.total_goods_usd,
+      goods_rate: data.goods_rate ?? calcDefaults.goods_rate,
+      sample_price: data.sample_price ?? calcDefaults.sample_price,
+      groups: Array.isArray(data.groups) ? data.groups : calcDefaults.groups,
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'Database error' });
+  }
+});
+
+app.patch('/api/calculator', async (req, res) => {
+  const body = req.body || {};
+  const payload = {
+    id: CALC_ID,
+    global_rate: Number(body.global_rate) ?? calcDefaults.global_rate,
+    rate_date: body.rate_date ?? calcDefaults.rate_date,
+    total_goods_usd: Number(body.total_goods_usd) ?? calcDefaults.total_goods_usd,
+    goods_rate: Number(body.goods_rate) ?? calcDefaults.goods_rate,
+    sample_price: Number(body.sample_price) ?? calcDefaults.sample_price,
+    groups: Array.isArray(body.groups) ? body.groups : calcDefaults.groups,
+    updated_at: new Date().toISOString(),
+  };
+  const sb = supabase();
+  if (!sb) return res.json(payload);
+  try {
+    const { error } = await sb.schema('container_cost').from('calculator_state').upsert(payload, { onConflict: 'id' });
+    if (error) throw error;
+    return res.json(payload);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'Database error' });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`API running at http://localhost:${PORT} (use /api/container)`);
+  console.log(`API running at http://localhost:${PORT} (use /api/container, /api/calculator)`);
 });

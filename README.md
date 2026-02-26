@@ -60,4 +60,7 @@ Use `--force` only if you intend to replace the remote history (e.g. empty repo 
 
 ## Schema
 
-See **`supabase/schema.sql`**. Table `container_cost.containers`: `id`, `title`, `mbl`, `created_at`, `updated_at`.
+See **`supabase/schema.sql`**:
+
+- **`container_cost.containers`** — container header: `id`, `title`, `mbl`, `container_code`, `ref_no`, timestamps.
+- **`container_cost.calculator_state`** — full calculator: `id`, `global_rate`, `rate_date`, `total_goods_usd`, `goods_rate`, `sample_price`, `groups` (JSONB), `updated_at`. All cost groups, items, and values are saved here; changes (including add/delete cost lines) persist and sync across sessions.

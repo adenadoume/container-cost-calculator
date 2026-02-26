@@ -26,6 +26,20 @@ ON CONFLICT (id) DO NOTHING;
 -- ALTER TABLE container_cost.containers ADD COLUMN IF NOT EXISTS container_code TEXT NOT NULL DEFAULT 'I110.15';
 -- ALTER TABLE container_cost.containers ADD COLUMN IF NOT EXISTS ref_no TEXT NOT NULL DEFAULT '12239';
 
+-- Calculator state: all cost groups, items, rates, goods value (persisted so edits/deletes stick)
+CREATE TABLE IF NOT EXISTS container_cost.calculator_state (
+  id              TEXT PRIMARY KEY DEFAULT 'default',
+  global_rate     NUMERIC NOT NULL DEFAULT 1.1651,
+  rate_date       DATE,
+  total_goods_usd NUMERIC NOT NULL DEFAULT 53870.46,
+  goods_rate      NUMERIC NOT NULL DEFAULT 1.1651,
+  sample_price    NUMERIC NOT NULL DEFAULT 100,
+  groups          JSONB NOT NULL DEFAULT '[]',
+  updated_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- No seed row: first GET returns null and frontend uses defaults; first PATCH creates the row.
+
 -- Optional: enable if you use SUPABASE_ANON_KEY in Vercel (allows anon to read/write this table)
 -- ALTER TABLE container_cost.containers ENABLE ROW LEVEL SECURITY;
 -- CREATE POLICY "Allow anon read/write" ON container_cost.containers
