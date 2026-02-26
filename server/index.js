@@ -124,7 +124,18 @@ app.patch('/api/calculator', async (req, res) => {
   }
 });
 
+app.get('/api/health', (req, res) => {
+  const hasUrl = process.env.SUPABASE_URL?.length > 10;
+  const hasKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY)?.length > 20;
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.json({
+    ok: true,
+    supabase: hasUrl && hasKey,
+    hint: !hasUrl || !hasKey ? 'Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env' : 'If saves fail: run supabase/schema.sql and add container_cost to Supabase → Settings → API → Exposed schemas.',
+  });
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`API running at http://localhost:${PORT} (use /api/container, /api/calculator)`);
+  console.log(`API running at http://localhost:${PORT} (use /api/container, /api/calculator, /api/health)`);
 });

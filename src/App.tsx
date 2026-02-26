@@ -82,7 +82,7 @@ const INITIAL_GROUPS: CostGroup[] = [
 
 // ─── component ───────────────────────────────────────────────────────────────
 export default function App() {
-  const { container, loading, saving, updateContainer } = useContainer();
+  const { container, loading, saving, saveError, setSaveError, updateContainer } = useContainer();
   const calc = useCalculator(INITIAL_GROUPS);
   const {
     groups,
@@ -199,6 +199,13 @@ export default function App() {
           {loading ? (
             <p className="text-[#9ca3af] text-sm">Loading…</p>
           ) : (
+            <>
+            {saveError && (
+              <div className="mb-2 rounded bg-red-500/20 border border-red-500/50 px-3 py-2 text-sm text-red-300 flex items-center justify-between gap-2">
+                <span>Save failed: {saveError}</span>
+                <button type="button" onClick={() => setSaveError()} className="text-red-400 hover:text-white">Dismiss</button>
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[#d1d5db]">
               {(saving || calcSaving) && (
                 <span className="text-[#9ca3af] text-xs italic">Saving…</span>
@@ -251,6 +258,7 @@ export default function App() {
                 </button>
               )}
             </div>
+            </>
           )}
         </header>
 

@@ -20,6 +20,7 @@ export function useContainer() {
   const [container, setContainer] = useState<ContainerInfo>(defaults);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const fetchContainer = useCallback(async () => {
     try {
@@ -46,6 +47,7 @@ export function useContainer() {
 
   const updateContainer = useCallback(async (updates: Partial<ContainerInfo>) => {
     setSaving(true);
+    setSaveError(null);
     try {
       const res = await fetch(`${API}/container`, {
         method: 'PATCH',
@@ -61,12 +63,17 @@ export function useContainer() {
           ref_no: data.ref_no ?? container.ref_no,
         });
       } else {
+        const msg = data?.details || data?.error || `HTTP ${res.status}`;
+        setSaveError(msg);
         console.error('Container save failed:', res.status, data);
       }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Network error';
+      setSaveError(msg);
     } finally {
       setSaving(false);
     }
   }, [container.title, container.mbl, container.container_code, container.ref_no]);
 
-  return { container, loading, saving, updateContainer, refetch: fetchContainer };
+  return { container, loading, saving, saveError, setSaveError: () => setSaveError(null), updateContainer, refetch: fetchContainer };
 }
