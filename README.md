@@ -13,13 +13,13 @@ React app for landed cost calculation with **editable container title** and **MB
 
 1. In your Supabase project, open **SQL Editor** and run the script in **`supabase/schema.sql`**.
 2. In **Project Settings → API**, add **`container_cost`** to **Exposed schemas**.
-3. Copy **Project URL** and **service_role** key (Settings → API) for env vars below.
+3. Copy **Project URL** and one key: **service_role** (recommended) or **anon** (see env vars below).
 
 ## Local run
 
 ```bash
 cp .env.example .env
-# Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env
+# Set SUPABASE_URL and either SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY in .env
 npm install
 npm run dev
 ```
@@ -35,7 +35,7 @@ Without Supabase env vars, the app runs; container title/MBL use in-memory defau
 2. In [Vercel](https://vercel.com), **Import** the repo.
 3. Add environment variables:
    - `SUPABASE_URL` = your Supabase project URL  
-   - `SUPABASE_SERVICE_ROLE_KEY` = your Supabase service_role key  
+   - Either **`SUPABASE_SERVICE_ROLE_KEY`** (service_role key — no RLS) or **`SUPABASE_ANON_KEY`** (anon key — run the optional RLS policy in `supabase/schema.sql` if you use anon)  
 4. Deploy. The **API** is served as serverless functions under `/api/*` (e.g. `/api/container`).
 
 ## Push to GitHub (replace existing repo)

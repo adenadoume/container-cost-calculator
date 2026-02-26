@@ -86,8 +86,12 @@ export default function App() {
   // Container header inline edit
   const [editTitle, setEditTitle] = useState(false);
   const [editMbl,   setEditMbl]   = useState(false);
+  const [editContainerCode, setEditContainerCode] = useState(false);
+  const [editRefNo, setEditRefNo] = useState(false);
   const [localTitle, setLocalTitle] = useState('');
   const [localMbl,   setLocalMbl]   = useState('');
+  const [localContainerCode, setLocalContainerCode] = useState('');
+  const [localRefNo, setLocalRefNo] = useState('');
 
   // Cost groups
   const [groups,    setGroups]    = useState<CostGroup[]>(INITIAL_GROUPS);
@@ -152,9 +156,11 @@ export default function App() {
     setGroups(gs => gs.map(g =>
       g.id === groupId ? { ...g, items: g.items.filter(i => i.id !== itemId) } : g));
 
-  // ── container title save ──
-  const saveTitle = () => { setEditTitle(false); if (localTitle.trim()) updateContainer({ title: localTitle.trim() }); };
-  const saveMbl   = () => { setEditMbl(false);   if (localMbl.trim())   updateContainer({ mbl:   localMbl.trim() }); };
+  // ── container header save ──
+  const saveTitle         = () => { setEditTitle(false);         if (localTitle.trim())         updateContainer({ title: localTitle.trim() }); };
+  const saveMbl           = () => { setEditMbl(false);           if (localMbl.trim())           updateContainer({ mbl: localMbl.trim() }); };
+  const saveContainerCode = () => { setEditContainerCode(false); if (localContainerCode.trim()) updateContainer({ container_code: localContainerCode.trim() }); };
+  const saveRefNo         = () => { setEditRefNo(false);         if (localRefNo.trim())         updateContainer({ ref_no: localRefNo.trim() }); };
 
   // ── render ───────────────────────────────────────────────────────────────
   return (
@@ -166,6 +172,23 @@ export default function App() {
           <div className="flex flex-wrap items-center gap-3 mb-2">
             <Calculator className="h-8 w-8 text-[#60a5fa]" />
             <h1 className="text-2xl md:text-3xl font-bold text-white">Landed Cost Calculator</h1>
+            <span className="text-2xl md:text-3xl font-bold text-[#9ca3af]">Container code:</span>
+            {loading ? (
+              <span className="text-2xl md:text-3xl font-bold text-white">I110.15</span>
+            ) : editContainerCode ? (
+              <span className="flex items-center gap-2">
+                <input autoFocus value={localContainerCode} onChange={e => setLocalContainerCode(e.target.value)}
+                  onBlur={saveContainerCode} onKeyDown={e => e.key === 'Enter' && saveContainerCode()}
+                  className="w-28 rounded border border-[#4b5563] bg-[#111827] px-2 py-1 text-2xl md:text-3xl font-bold text-white focus:border-[#60a5fa] focus:outline-none" />
+                <button onClick={saveContainerCode} disabled={saving} className="text-[#34d399] hover:opacity-80"><Check className="h-5 w-5" /></button>
+              </span>
+            ) : (
+              <button onClick={() => { setLocalContainerCode(container.container_code); setEditContainerCode(true); }}
+                className="flex items-center gap-1 rounded px-1 hover:bg-white/10">
+                <span className="text-2xl md:text-3xl font-bold text-white font-mono">{container.container_code}</span>
+                <Pencil className="h-4 w-4 text-[#6b7280]" />
+              </button>
+            )}
           </div>
 
           {loading ? (
@@ -200,6 +223,22 @@ export default function App() {
                 <button onClick={() => { setLocalMbl(container.mbl); setEditMbl(true); }}
                   className="flex items-center gap-1 rounded px-1 hover:bg-white/10">
                   <span className="font-mono font-semibold text-white">{container.mbl}</span>
+                  <Pencil className="h-3 w-3 text-[#6b7280]" />
+                </button>
+              )}
+              <span className="text-[#374151]">|</span>
+              <span className="text-[#6b7280]">Ref. no:</span>
+              {editRefNo ? (
+                <span className="flex items-center gap-2">
+                  <input autoFocus value={localRefNo} onChange={e => setLocalRefNo(e.target.value)}
+                    onBlur={saveRefNo} onKeyDown={e => e.key === 'Enter' && saveRefNo()}
+                    className="rounded border border-[#4b5563] bg-[#111827] px-2 py-1 text-white focus:border-[#60a5fa] focus:outline-none" />
+                  <button onClick={saveRefNo} disabled={saving} className="text-[#34d399] hover:opacity-80"><Check className="h-4 w-4" /></button>
+                </span>
+              ) : (
+                <button onClick={() => { setLocalRefNo(container.ref_no); setEditRefNo(true); }}
+                  className="flex items-center gap-1 rounded px-1 hover:bg-white/10">
+                  <span className="font-mono font-semibold text-white">{container.ref_no}</span>
                   <Pencil className="h-3 w-3 text-[#6b7280]" />
                 </button>
               )}
