@@ -4,9 +4,10 @@ import { Calculator, LogIn, UserPlus, AlertTriangle } from 'lucide-react';
 interface Props {
   onSignIn: (email: string, password: string) => Promise<string | null>;
   onSignUp: (email: string, password: string) => Promise<string | null>;
+  unconfigured?: boolean;
 }
 
-export function LoginScreen({ onSignIn, onSignUp }: Props) {
+export function LoginScreen({ onSignIn, onSignUp, unconfigured }: Props) {
   const [mode, setMode]         = useState<'login' | 'signup'>('login');
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -48,6 +49,13 @@ export function LoginScreen({ onSignIn, onSignUp }: Props) {
           <h2 className="text-lg font-bold text-white mb-5">
             {mode === 'login' ? 'Sign in' : 'Create account'}
           </h2>
+
+          {unconfigured && (
+            <div className="mb-4 flex items-start gap-2 rounded-lg border border-yellow-500/40 bg-yellow-500/10 px-3 py-2 text-xs text-yellow-300">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-yellow-400" />
+              <span>Auth not configured. Add <code className="font-mono">VITE_SUPABASE_URL</code> and <code className="font-mono">VITE_SUPABASE_ANON_KEY</code> to Vercel environment variables.</span>
+            </div>
+          )}
 
           <form onSubmit={submit} className="space-y-4">
             <div>

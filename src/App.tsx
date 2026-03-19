@@ -98,7 +98,8 @@ export default function App() {
   }
 
   if (!session) {
-    return <LoginScreen onSignIn={signIn} onSignUp={signUp} />;
+    const unconfigured = !import.meta.env.VITE_SUPABASE_URL;
+    return <LoginScreen onSignIn={signIn} onSignUp={signUp} unconfigured={unconfigured} />;
   }
 
   return <AppInner signOut={signOut} userEmail={session.user.email} />;

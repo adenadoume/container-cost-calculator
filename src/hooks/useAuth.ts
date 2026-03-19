@@ -2,17 +2,12 @@ import { useState, useEffect } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
-// Sentinel session used when auth is not configured (VITE_ vars missing)
-const UNCONFIGURED_SESSION = { user: { email: '' } } as unknown as Session;
-
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!supabase) {
-      // Auth not configured — let the app through without login
-      setSession(UNCONFIGURED_SESSION);
       setLoading(false);
       return;
     }
@@ -41,7 +36,10 @@ export function useAuth() {
     return error?.message ?? null;
   };
 
-  const signOut = () => supabase?.auth.signOut();
+  const signOut = async () => {
+    await supabase?.auth.signOut();
+    setSession(null);
+  };
 
   return { session, loading, signIn, signUp, signOut };
 }
