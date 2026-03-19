@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import {
-  Calculator, Package, Ship, DollarSign,
+  Sigma, Calculator, Package, Ship, DollarSign,
   ChevronDown, ChevronRight, Copy, CheckCheck,
   Pencil, Check, Plus, Trash2, AlertTriangle,
   Save, History, LogOut,
@@ -92,7 +92,7 @@ export default function App() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
-        <Calculator className="h-10 w-10 text-[#60a5fa] animate-pulse" />
+        <Sigma className="h-10 w-10 text-[#60a5fa] animate-pulse" strokeWidth={1.5} />
       </div>
     );
   }
@@ -258,7 +258,7 @@ function AppInner({ signOut, userEmail }: { signOut: () => void; userEmail?: str
         {/* ── HEADER ── */}
         <header className="animate-fade-in rounded-xl border border-[#374151] bg-[#1f2937] p-5 shadow-xl">
           <div className="flex flex-wrap items-center gap-3 mb-2">
-            <Calculator className="h-8 w-8 text-[#60a5fa]" />
+            <Sigma className="h-8 w-8 text-[#60a5fa]" strokeWidth={1.5} />
             <h1 className="text-2xl md:text-3xl font-bold text-white">Landed Cost Calculator</h1>
             <span className="text-2xl md:text-3xl font-bold text-[#9ca3af]">Container code:</span>
             {loading ? (
