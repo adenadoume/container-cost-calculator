@@ -44,3 +44,14 @@ CREATE TABLE IF NOT EXISTS container_cost.calculator_state (
 -- ALTER TABLE container_cost.containers ENABLE ROW LEVEL SECURITY;
 -- CREATE POLICY "Allow anon read/write" ON container_cost.containers
 --   FOR ALL TO anon USING (true) WITH CHECK (true);
+
+-- Snapshots: named saves of full container + calculator state
+CREATE TABLE IF NOT EXISTS container_cost.snapshots (
+  id          TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  name        TEXT NOT NULL,
+  container   JSONB NOT NULL,
+  calculator  JSONB NOT NULL,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+GRANT ALL ON container_cost.snapshots TO anon, authenticated, service_role;

@@ -25,59 +25,62 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const sb = supabase();
-  const table = () => sb!.schema('container_cost').from('containers');
+  try {
+    const sb = supabase();
+    const table = () => sb!.schema('container_cost').from('containers');
 
-  if (req.method === 'GET') {
-    if (!sb) return res.status(200).json(defaults);
-    const { data, error } = await table()
-      .select('title, mbl, container_code, ref_no')
-      .eq('id', CONTAINER_ID)
-      .maybeSingle();
-    if (error) {
-      console.error(error);
-      return res.status(500).json({ error: 'Database error' });
-    }
-    return res.status(200).json({
-      title: data?.title ?? defaults.title,
-      mbl: data?.mbl ?? defaults.mbl,
-      container_code: data?.container_code ?? defaults.container_code,
-      ref_no: data?.ref_no ?? defaults.ref_no,
-    });
-  }
-
-  if (req.method === 'PATCH') {
-    const body = req.body || {};
-    if (!sb) {
+    if (req.method === 'GET') {
+      if (!sb) return res.status(200).json(defaults);
+      const { data, error } = await table()
+        .select('title, mbl, container_code, ref_no')
+        .eq('id', CONTAINER_ID)
+        .maybeSingle();
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Database error', details: error.message });
+      }
       return res.status(200).json({
-        title: body.title ?? defaults.title,
-        mbl: body.mbl ?? defaults.mbl,
-        container_code: body.container_code ?? defaults.container_code,
-        ref_no: body.ref_no ?? defaults.ref_no,
+        title: data?.title ?? defaults.title,
+        mbl: data?.mbl ?? defaults.mbl,
+        container_code: data?.container_code ?? defaults.container_code,
+        ref_no: data?.ref_no ?? defaults.ref_no,
       });
     }
-    // Merge with current row so we only update sent fields
-    const { data: current } = await table().select('title, mbl, container_code, ref_no').eq('id', CONTAINER_ID).maybeSingle();
-    const merged = {
-      id: CONTAINER_ID,
-      title: body.title !== undefined ? body.title : (current?.title ?? defaults.title),
-      mbl: body.mbl !== undefined ? body.mbl : (current?.mbl ?? defaults.mbl),
-      container_code: body.container_code !== undefined ? body.container_code : (current?.container_code ?? defaults.container_code),
-      ref_no: body.ref_no !== undefined ? body.ref_no : (current?.ref_no ?? defaults.ref_no),
-      updated_at: new Date().toISOString(),
-    };
-    const { error } = await table().upsert(merged, { onConflict: 'id' });
-    if (error) {
-      console.error(error);
-      return res.status(500).json({ error: 'Database error', details: error.message });
-    }
-    return res.status(200).json({
-      title: merged.title,
-      mbl: merged.mbl,
-      container_code: merged.container_code,
-      ref_no: merged.ref_no,
-    });
-  }
 
-  return res.status(405).json({ error: 'Method not allowed' });
+    if (req.method === 'PATCH') {
+      const body = (typeof req.body === 'object' && req.body !== null) ? req.body : {};
+      if (!sb) {
+        return res.status(503).json({
+          error: 'Supabase not configured',
+          details: 'Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Vercel → Project → Settings → Environment Variables, then redeploy.',
+        });
+      }
+      const { data: current } = await table().select('title, mbl, container_code, ref_no').eq('id', CONTAINER_ID).maybeSingle();
+      const merged = {
+        id: CONTAINER_ID,
+        title: body.title !== undefined ? body.title : (current?.title ?? defaults.title),
+        mbl: body.mbl !== undefined ? body.mbl : (current?.mbl ?? defaults.mbl),
+        container_code: body.container_code !== undefined ? body.container_code : (current?.container_code ?? defaults.container_code),
+        ref_no: body.ref_no !== undefined ? body.ref_no : (current?.ref_no ?? defaults.ref_no),
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await table().upsert(merged, { onConflict: 'id' });
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Database error', details: error.message });
+      }
+      return res.status(200).json({
+        title: merged.title,
+        mbl: merged.mbl,
+        container_code: merged.container_code,
+        ref_no: merged.ref_no,
+      });
+    }
+
+    return res.status(405).json({ error: 'Method not allowed' });
+  } catch (err) {
+    console.error(err);
+    const message = err instanceof Error ? err.message : 'Server error';
+    return res.status(500).json({ error: 'Server error', details: message });
+  }
 }

@@ -29,6 +29,7 @@ export function useCalculator(initialGroups: CostGroup[]) {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchCalculator = useCallback(async () => {
@@ -59,22 +60,32 @@ export function useCalculator(initialGroups: CostGroup[]) {
     fetchCalculator();
   }, [fetchCalculator]);
 
-  const saveCalculator = useCallback((s: CalculatorState) => {
+  const saveCalculator = useCallback(async (s: CalculatorState) => {
     setSaving(true);
-    fetch(`${API}/calculator`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        global_rate: s.globalRate,
-        rate_date: s.rateDate,
-        total_goods_usd: s.totalGoodsUSD,
-        goods_rate: s.goodsRate,
-        sample_price: s.samplePrice,
-        groups: s.groups,
-      }),
-    })
-      .then(() => setSaving(false))
-      .catch(() => setSaving(false));
+    setSaveError(null);
+    try {
+      const res = await fetch(`${API}/calculator`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          global_rate: s.globalRate,
+          rate_date: s.rateDate,
+          total_goods_usd: s.totalGoodsUSD,
+          goods_rate: s.goodsRate,
+          sample_price: s.samplePrice,
+          groups: s.groups,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = (data?.details as string) || (data?.error as string) || `HTTP ${res.status}`;
+        setSaveError(msg);
+      }
+    } catch {
+      setSaveError('Network error');
+    } finally {
+      setSaving(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -104,6 +115,8 @@ export function useCalculator(initialGroups: CostGroup[]) {
       setState(prev => ({ ...prev, samplePrice: typeof v === 'function' ? v(prev.samplePrice) : v })),
     loading,
     saving,
+    saveError,
+    setSaveError: () => setSaveError(null),
     refetch: fetchCalculator,
   };
 }

@@ -60,13 +60,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const groups = Array.isArray(body.groups) ? body.groups : defaultState.groups;
 
     if (!sb) {
-      return res.status(200).json({
-        global_rate,
-        rate_date,
-        total_goods_usd,
-        goods_rate,
-        sample_price,
-        groups,
+      return res.status(503).json({
+        error: 'Supabase not configured',
+        details: 'Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Vercel → Project → Settings → Environment Variables, then redeploy.',
       });
     }
     const { error } = await table().upsert(

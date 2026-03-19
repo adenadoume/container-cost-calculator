@@ -3,10 +3,13 @@ import {
   Calculator, Package, Ship, DollarSign,
   ChevronDown, ChevronRight, Copy, CheckCheck,
   Pencil, Check, Plus, Trash2, AlertTriangle,
+  Save, History,
 } from 'lucide-react';
 import { useContainer } from './hooks/useContainer';
 import { useCalculator } from './hooks/useCalculator';
 import type { CostGroup, CostItem, GroupColor } from './types';
+import { SnapshotsDrawer } from './components/SnapshotsDrawer';
+import type { SnapshotEntry } from './components/SnapshotsDrawer';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -98,6 +101,8 @@ export default function App() {
     samplePrice,
     setSamplePrice,
     saving: calcSaving,
+    saveError: calcSaveError,
+    setSaveError: setCalcSaveError,
   } = calc;
 
   // Container header inline edit
@@ -116,6 +121,60 @@ export default function App() {
 
   // Copy feedback
   const [copied, setCopied] = useState(false);
+
+  // Snapshots drawer
+  const [drawerOpen, setDrawerOpen]       = useState(false);
+  const [snapshots, setSnapshots]         = useState<SnapshotEntry[]>([]);
+  const [snapsLoading, setSnapsLoading]   = useState(false);
+  const [savingSnap, setSavingSnap]       = useState(false);
+  const [snapSaved, setSnapSaved]         = useState(false);
+
+  const fetchSnapshots = async () => {
+    setSnapsLoading(true);
+    try {
+      const r = await fetch('/api/snapshots');
+      if (r.ok) setSnapshots(await r.json());
+    } finally {
+      setSnapsLoading(false);
+    }
+  };
+
+  const openDrawer = () => { setDrawerOpen(true); fetchSnapshots(); };
+
+  const saveSnapshot = async () => {
+    setSavingSnap(true);
+    try {
+      await fetch('/api/snapshots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: container.container_code,
+          container,
+          calculator: { groups, totalGoodsUSD, goodsRate, globalRate, rateDate, samplePrice },
+        }),
+      });
+      setSnapSaved(true);
+      setTimeout(() => setSnapSaved(false), 2000);
+    } finally {
+      setSavingSnap(false);
+    }
+  };
+
+  const loadSnapshot = (snap: SnapshotEntry) => {
+    updateContainer(snap.container);
+    const c = snap.calculator;
+    setGroups(c.groups);
+    setTotalGoodsUSD(c.totalGoodsUSD);
+    setGoodsRate(c.goodsRate);
+    setGlobalRate(c.globalRate);
+    setRateDate(c.rateDate);
+    setSamplePrice(c.samplePrice);
+  };
+
+  const deleteSnapshot = async (id: string) => {
+    await fetch(`/api/snapshots?id=${id}`, { method: 'DELETE' });
+    setSnapshots(s => s.filter(x => x.id !== id));
+  };
 
   // ── calculations ──
   const goodsEUR = totalGoodsUSD / goodsRate;
@@ -194,16 +253,39 @@ export default function App() {
                 <Pencil className="h-4 w-4 text-[#6b7280]" />
               </button>
             )}
+
+            {/* Save snapshot + open drawer */}
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={saveSnapshot}
+                disabled={savingSnap || loading}
+                title={`Save "${container.container_code}" as snapshot`}
+                className="flex items-center gap-1.5 rounded-lg border border-[#374151] bg-[#111827] px-3 py-1.5 text-sm font-semibold text-white hover:border-[#60a5fa] hover:text-[#60a5fa] transition-colors disabled:opacity-50"
+              >
+                {snapSaved
+                  ? <CheckCheck className="h-4 w-4 text-[#34d399]" />
+                  : <Save className="h-4 w-4" />}
+                {snapSaved ? 'Saved!' : 'Save'}
+              </button>
+              <button
+                onClick={openDrawer}
+                title="View saved containers"
+                className="flex items-center gap-1.5 rounded-lg border border-[#374151] bg-[#111827] px-3 py-1.5 text-sm font-semibold text-[#9ca3af] hover:border-[#60a5fa] hover:text-white transition-colors"
+              >
+                <History className="h-4 w-4" />
+                History
+              </button>
+            </div>
           </div>
 
           {loading ? (
             <p className="text-[#9ca3af] text-sm">Loading…</p>
           ) : (
             <>
-            {saveError && (
+            {(saveError || calcSaveError) && (
               <div className="mb-2 rounded bg-red-500/20 border border-red-500/50 px-3 py-2 text-sm text-red-300 flex items-center justify-between gap-2">
-                <span>Save failed: {saveError}</span>
-                <button type="button" onClick={() => setSaveError()} className="text-red-400 hover:text-white">Dismiss</button>
+                <span>Save failed: {saveError || calcSaveError}</span>
+                <button type="button" onClick={() => { setSaveError(); setCalcSaveError(); }} className="text-red-400 hover:text-white">Dismiss</button>
               </div>
             )}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[#d1d5db]">
@@ -578,6 +660,15 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      <SnapshotsDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        snapshots={snapshots}
+        loading={snapsLoading}
+        onLoad={loadSnapshot}
+        onDelete={deleteSnapshot}
+      />
     </div>
   );
 }

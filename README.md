@@ -17,26 +17,31 @@ React app for landed cost calculation with **editable container title** and **MB
 
 ## Local run
 
+1. **Connect to Supabase:** Edit **`.env`** in the project root and set:
+   - **`SUPABASE_URL`** = your project URL (e.g. `https://xxxxx.supabase.co`)
+   - **`SUPABASE_SERVICE_ROLE_KEY`** = your service_role key  
+   Both are in Supabase → **Project Settings → API**.
+
+2. **Install and run:**
 ```bash
-cp .env.example .env
-# Set SUPABASE_URL and either SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY in .env
 npm install
 npm run dev
 ```
 
 - Frontend: http://localhost:5173  
-- API: http://localhost:3001 (Express, same Supabase — used only when not on Vercel)
+- API: http://localhost:3001 (reads from `.env`; same Supabase as Vercel)
 
-Without Supabase env vars, the app runs; container title/MBL use in-memory defaults.
+**Important:** `npm run dev` starts both the Vite dev server and the API server. You should see `API running at http://localhost:3001`. If Supabase env vars are missing or wrong, saves will fail and the app will show a red “Save failed” banner with instructions.
 
 ## Deploy to Vercel
 
 1. Push this repo to GitHub (e.g. [adenadoume/container-cost-calculator](https://github.com/adenadoume/container-cost-calculator)).
 2. In [Vercel](https://vercel.com), **Import** the repo.
-3. Add environment variables:
-   - `SUPABASE_URL` = your Supabase project URL  
-   - Either **`SUPABASE_SERVICE_ROLE_KEY`** (service_role key — no RLS) or **`SUPABASE_ANON_KEY`** (anon key — run the optional RLS policy in `supabase/schema.sql` if you use anon)  
-4. Deploy. The **API** is served as serverless functions under `/api/*` (e.g. `/api/container`).
+3. **Add environment variables** (required for saves to work):
+   - **Project → Settings → Environment Variables**
+   - `SUPABASE_URL` = your Supabase project URL (e.g. `https://xxxxx.supabase.co`)
+   - `SUPABASE_SERVICE_ROLE_KEY` = your **service_role** key (from Supabase → Project Settings → API)
+4. Deploy. The API runs as serverless functions under `/api/*`. If you deploy without these variables, the app will load but saves will show “Save failed” with instructions to add them and redeploy.
 
 ## Push to GitHub (replace existing repo)
 
