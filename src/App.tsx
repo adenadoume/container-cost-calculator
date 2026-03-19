@@ -3,13 +3,15 @@ import {
   Calculator, Package, Ship, DollarSign,
   ChevronDown, ChevronRight, Copy, CheckCheck,
   Pencil, Check, Plus, Trash2, AlertTriangle,
-  Save, History,
+  Save, History, LogOut,
 } from 'lucide-react';
 import { useContainer } from './hooks/useContainer';
 import { useCalculator } from './hooks/useCalculator';
+import { useAuth } from './hooks/useAuth';
 import type { CostGroup, CostItem, GroupColor } from './types';
 import { SnapshotsDrawer } from './components/SnapshotsDrawer';
 import type { SnapshotEntry } from './components/SnapshotsDrawer';
+import { LoginScreen } from './components/LoginScreen';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -85,6 +87,24 @@ const INITIAL_GROUPS: CostGroup[] = [
 
 // ─── component ───────────────────────────────────────────────────────────────
 export default function App() {
+  const { session, loading: authLoading, signIn, signUp, signOut } = useAuth();
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+        <Calculator className="h-10 w-10 text-[#60a5fa] animate-pulse" />
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <LoginScreen onSignIn={signIn} onSignUp={signUp} />;
+  }
+
+  return <AppInner signOut={signOut} userEmail={session.user.email} />;
+}
+
+function AppInner({ signOut, userEmail }: { signOut: () => void; userEmail?: string }) {
   const { container, loading, saving, saveError, setSaveError, updateContainer } = useContainer();
   const calc = useCalculator(INITIAL_GROUPS);
   const {
@@ -257,7 +277,7 @@ export default function App() {
               </button>
             )}
 
-            {/* Save snapshot + open drawer */}
+            {/* Save snapshot + open drawer + sign out */}
             <div className="ml-auto flex items-center gap-2">
               <button
                 onClick={saveSnapshot}
@@ -277,6 +297,13 @@ export default function App() {
               >
                 <History className="h-4 w-4" />
                 History
+              </button>
+              <button
+                onClick={signOut}
+                title={userEmail}
+                className="flex items-center gap-1.5 rounded-lg border border-[#374151] bg-[#111827] px-3 py-1.5 text-sm font-semibold text-[#9ca3af] hover:border-red-500/50 hover:text-red-400 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
               </button>
             </div>
           </div>
