@@ -92,6 +92,8 @@ export default function App() {
     setGroups,
     totalGoodsUSD,
     setTotalGoodsUSD,
+    goodsCurrency,
+    setGoodsCurrency,
     goodsRate,
     setGoodsRate,
     globalRate,
@@ -150,7 +152,7 @@ export default function App() {
         body: JSON.stringify({
           name: container.container_code,
           container,
-          calculator: { groups, totalGoodsUSD, goodsRate, globalRate, rateDate, samplePrice },
+          calculator: { groups, totalGoodsUSD, goodsCurrency, goodsRate, globalRate, rateDate, samplePrice },
         }),
       });
       setSnapSaved(true);
@@ -165,6 +167,7 @@ export default function App() {
     const c = snap.calculator;
     setGroups(c.groups);
     setTotalGoodsUSD(c.totalGoodsUSD);
+    setGoodsCurrency(c.goodsCurrency ?? 'USD');
     setGoodsRate(c.goodsRate);
     setGlobalRate(c.globalRate);
     setRateDate(c.rateDate);
@@ -177,7 +180,7 @@ export default function App() {
   };
 
   // ── calculations ──
-  const goodsEUR = totalGoodsUSD / goodsRate;
+  const goodsEUR = goodsCurrency === 'EUR' ? totalGoodsUSD : totalGoodsUSD / goodsRate;
 
   const groupTotals = useMemo(() =>
     groups.map(g => {
@@ -522,18 +525,33 @@ export default function App() {
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-[#9ca3af]">Συνολική Αξία Αγορών (USD)</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-[#9ca3af]">Συνολική Αξία Αγορών</label>
+                    <button
+                      onClick={() => setGoodsCurrency(goodsCurrency === 'USD' ? 'EUR' : 'USD')}
+                      className={`rounded px-2 py-0.5 text-xs font-bold transition-colors
+                        ${goodsCurrency === 'USD'
+                          ? 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30'
+                          : 'bg-[#374151] text-[#d1d5db] hover:bg-[#4b5563]'}`}
+                    >
+                      {goodsCurrency}
+                    </button>
+                  </div>
                   <input type="number" step="0.01" value={totalGoodsUSD}
                     onChange={e => setTotalGoodsUSD(parseFloat(e.target.value) || 0)}
                     className="w-full rounded-lg border border-[#374151] bg-[#111827] px-3 py-2 text-white focus:border-[#60a5fa] focus:outline-none focus:ring-2 focus:ring-[#60a5fa]/30" />
-                  <p className="mt-1 text-xs text-[#9ca3af]">= {fmtEUR(goodsEUR)}</p>
+                  {goodsCurrency === 'USD' && (
+                    <p className="mt-1 text-xs text-[#9ca3af]">= {fmtEUR(goodsEUR)}</p>
+                  )}
                 </div>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-[#9ca3af]">USD/EUR Rate (customs entry)</label>
-                  <input type="number" step="0.0001" value={goodsRate}
-                    onChange={e => setGoodsRate(parseFloat(e.target.value) || 1)}
-                    className="w-full rounded-lg border border-[#374151] bg-[#111827] px-3 py-2 text-white focus:border-[#60a5fa] focus:outline-none focus:ring-2 focus:ring-[#60a5fa]/30" />
-                </div>
+                {goodsCurrency === 'USD' && (
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-[#9ca3af]">USD/EUR Rate (customs entry)</label>
+                    <input type="number" step="0.0001" value={goodsRate}
+                      onChange={e => setGoodsRate(parseFloat(e.target.value) || 1)}
+                      className="w-full rounded-lg border border-[#374151] bg-[#111827] px-3 py-2 text-white focus:border-[#60a5fa] focus:outline-none focus:ring-2 focus:ring-[#60a5fa]/30" />
+                  </div>
+                )}
               </div>
               <div className="mt-3 rounded-lg bg-[#fb923c]/10 border border-[#fb923c]/30 px-4 py-2 flex justify-between text-sm">
                 <span className="text-[#9ca3af]">Goods value in EUR</span>

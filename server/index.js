@@ -120,6 +120,7 @@ const calcDefaults = {
   global_rate: 1.1651,
   rate_date: new Date().toISOString().slice(0, 10),
   total_goods_usd: 53870.46,
+  goods_currency: 'USD',
   goods_rate: 1.1651,
   sample_price: 100,
   groups: [],
@@ -140,13 +141,14 @@ app.get('/api/calculator', asyncHandler(async (req, res) => {
     });
   }
   try {
-    const { data, error } = await sb.schema('container_cost').from('calculator_state').select('global_rate, rate_date, total_goods_usd, goods_rate, sample_price, groups').eq('id', CALC_ID).maybeSingle();
+    const { data, error } = await sb.schema('container_cost').from('calculator_state').select('global_rate, rate_date, total_goods_usd, goods_currency, goods_rate, sample_price, groups').eq('id', CALC_ID).maybeSingle();
     if (error) throw error;
     if (!data) return res.json(calcDefaults);
     return res.json({
       global_rate: data.global_rate ?? calcDefaults.global_rate,
       rate_date: data.rate_date ?? calcDefaults.rate_date,
       total_goods_usd: data.total_goods_usd ?? calcDefaults.total_goods_usd,
+      goods_currency: data.goods_currency === 'EUR' ? 'EUR' : 'USD',
       goods_rate: data.goods_rate ?? calcDefaults.goods_rate,
       sample_price: data.sample_price ?? calcDefaults.sample_price,
       groups: Array.isArray(data.groups) ? data.groups : calcDefaults.groups,
@@ -164,6 +166,7 @@ app.patch('/api/calculator', asyncHandler(async (req, res) => {
     global_rate: Number(body.global_rate) ?? calcDefaults.global_rate,
     rate_date: body.rate_date ?? calcDefaults.rate_date,
     total_goods_usd: Number(body.total_goods_usd) ?? calcDefaults.total_goods_usd,
+    goods_currency: body.goods_currency === 'EUR' ? 'EUR' : 'USD',
     goods_rate: Number(body.goods_rate) ?? calcDefaults.goods_rate,
     sample_price: Number(body.sample_price) ?? calcDefaults.sample_price,
     groups: Array.isArray(body.groups) ? body.groups : calcDefaults.groups,

@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS container_cost.calculator_state (
   global_rate     NUMERIC NOT NULL DEFAULT 1.1651,
   rate_date       DATE,
   total_goods_usd NUMERIC NOT NULL DEFAULT 53870.46,
+  goods_currency  TEXT NOT NULL DEFAULT 'USD',
   goods_rate      NUMERIC NOT NULL DEFAULT 1.1651,
   sample_price    NUMERIC NOT NULL DEFAULT 100,
   groups          JSONB NOT NULL DEFAULT '[]',
@@ -39,6 +40,9 @@ CREATE TABLE IF NOT EXISTS container_cost.calculator_state (
 );
 
 -- No seed row: first GET returns null and frontend uses defaults; first PATCH creates the row.
+
+-- If table already exists, add goods_currency column:
+-- ALTER TABLE container_cost.calculator_state ADD COLUMN IF NOT EXISTS goods_currency TEXT NOT NULL DEFAULT 'USD';
 
 -- Optional: enable if you use SUPABASE_ANON_KEY in Vercel (allows anon to read/write this table)
 -- ALTER TABLE container_cost.containers ENABLE ROW LEVEL SECURITY;

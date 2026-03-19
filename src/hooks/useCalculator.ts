@@ -7,6 +7,7 @@ const SAVE_DELAY_MS = 1200;
 export interface CalculatorState {
   groups: CostGroup[];
   totalGoodsUSD: number;
+  goodsCurrency: 'USD' | 'EUR';
   goodsRate: number;
   globalRate: number;
   rateDate: string;
@@ -16,6 +17,7 @@ export interface CalculatorState {
 const defaultState: CalculatorState = {
   groups: [],
   totalGoodsUSD: 53870.46,
+  goodsCurrency: 'USD',
   goodsRate: 1.1651,
   globalRate: 1.1651,
   rateDate: new Date().toISOString().slice(0, 10),
@@ -43,6 +45,7 @@ export function useCalculator(initialGroups: CostGroup[]) {
         setState({
           groups,
           totalGoodsUSD: Number(data.total_goods_usd) ?? defaultState.totalGoodsUSD,
+          goodsCurrency: (data.goods_currency === 'EUR' ? 'EUR' : 'USD'),
           goodsRate: Number(data.goods_rate) ?? defaultState.goodsRate,
           globalRate: Number(data.global_rate) ?? defaultState.globalRate,
           rateDate: data.rate_date ?? defaultState.rateDate,
@@ -71,6 +74,7 @@ export function useCalculator(initialGroups: CostGroup[]) {
           global_rate: s.globalRate,
           rate_date: s.rateDate,
           total_goods_usd: s.totalGoodsUSD,
+          goods_currency: s.goodsCurrency,
           goods_rate: s.goodsRate,
           sample_price: s.samplePrice,
           groups: s.groups,
@@ -106,6 +110,8 @@ export function useCalculator(initialGroups: CostGroup[]) {
       setState(prev => ({ ...prev, groups: typeof g === 'function' ? g(prev.groups) : g })),
     setTotalGoodsUSD: (v: number | ((p: number) => number)) =>
       setState(prev => ({ ...prev, totalGoodsUSD: typeof v === 'function' ? v(prev.totalGoodsUSD) : v })),
+    setGoodsCurrency: (v: 'USD' | 'EUR') =>
+      setState(prev => ({ ...prev, goodsCurrency: v })),
     setGoodsRate: (v: number | ((p: number) => number)) =>
       setState(prev => ({ ...prev, goodsRate: typeof v === 'function' ? v(prev.goodsRate) : v })),
     setGlobalRate: (v: number | ((p: number) => number)) =>

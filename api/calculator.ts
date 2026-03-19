@@ -32,7 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
     if (!sb) return res.status(200).json(defaultState);
     const { data, error } = await table()
-      .select('global_rate, rate_date, total_goods_usd, goods_rate, sample_price, groups')
+      .select('global_rate, rate_date, total_goods_usd, goods_currency, goods_rate, sample_price, groups')
       .eq('id', CALC_ID)
       .maybeSingle();
     if (error) {
@@ -44,6 +44,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       global_rate: data.global_rate ?? defaultState.global_rate,
       rate_date: data.rate_date ?? defaultState.rate_date,
       total_goods_usd: data.total_goods_usd ?? defaultState.total_goods_usd,
+      goods_currency: data.goods_currency === 'EUR' ? 'EUR' : 'USD',
       goods_rate: data.goods_rate ?? defaultState.goods_rate,
       sample_price: data.sample_price ?? defaultState.sample_price,
       groups: Array.isArray(data.groups) ? data.groups : defaultState.groups,
@@ -55,6 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const global_rate = Number(body.global_rate) ?? defaultState.global_rate;
     const rate_date = body.rate_date ?? defaultState.rate_date;
     const total_goods_usd = Number(body.total_goods_usd) ?? defaultState.total_goods_usd;
+    const goods_currency = body.goods_currency === 'EUR' ? 'EUR' : 'USD';
     const goods_rate = Number(body.goods_rate) ?? defaultState.goods_rate;
     const sample_price = Number(body.sample_price) ?? defaultState.sample_price;
     const groups = Array.isArray(body.groups) ? body.groups : defaultState.groups;
@@ -71,6 +73,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         global_rate,
         rate_date,
         total_goods_usd,
+        goods_currency,
         goods_rate,
         sample_price,
         groups,
@@ -86,6 +89,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       global_rate,
       rate_date,
       total_goods_usd,
+      goods_currency,
       goods_rate,
       sample_price,
       groups,

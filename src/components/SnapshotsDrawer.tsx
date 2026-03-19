@@ -4,6 +4,7 @@ import type { CostGroup } from '../types';
 export interface SnapshotCalculator {
   groups: CostGroup[];
   totalGoodsUSD: number;
+  goodsCurrency?: 'USD' | 'EUR';
   goodsRate: number;
   globalRate: number;
   rateDate: string;
